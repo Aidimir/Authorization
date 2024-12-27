@@ -32,7 +32,7 @@ public class JwtValidationMiddleware
             try
             {
                 var isValidToken = await tokenService.ValidateToken(token);
-                if (!isValidToken)
+                if (!isValidToken.Value)
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     await context.Response.WriteAsync("Invalid token");

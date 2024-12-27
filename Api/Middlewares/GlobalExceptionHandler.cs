@@ -1,4 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Security;
+using System.Security.Authentication;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Middlewares;
 
@@ -21,17 +25,9 @@ public class GlobalExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogError(e, e.Message);
             context.Response.ContentType = "application/json";
-            var code = DetectStatusCode(e);
-
-            context.Response.StatusCode = (int) code;
-            if ((int) code >= 500)
-            {
-                await context.Response.WriteAsJsonAsync("Something went wrong on server side");
-            }
-            else
-            {
-                await context.Response.WriteAsJsonAsync(e.Message);
-            }
+            var code = (int) DetectStatusCode(e);
+            context.Response.StatusCode = code >= 500 ? 400 : code;
+            await context.Response.WriteAsJsonAsync(e.Message);
         }
     }
 
@@ -39,10 +35,15 @@ public class GlobalExceptionHandlerMiddleware : IMiddleware
     {
         return exception switch
         {
-            UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+            UnauthorizedAccessException or SecurityTokenException or AuthenticationException => HttpStatusCode
+                .Unauthorized,
+
             BadHttpRequestException
                 or ArgumentException
-                or InvalidOperationException => HttpStatusCode.BadRequest,
+                or InvalidOperationException
+                or VerificationException
+                or ValidationException
+                or ArgumentNullException => HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
     }

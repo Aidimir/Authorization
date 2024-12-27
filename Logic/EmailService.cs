@@ -1,3 +1,4 @@
+using System.Security;
 using Db.Context;
 using Db.Models;
 using MailKit.Net.Smtp;
@@ -30,7 +31,8 @@ public class EmailService : IEmailService
     {
         var emailMessage = new MimeMessage();
 
-        emailMessage.From.Add(new MailboxAddress(_configuration["EmailSettings:OfficialName"], _configuration["EmailSettings:EmailAddress"]));
+        emailMessage.From.Add(new MailboxAddress(_configuration["EmailSettings:OfficialName"],
+            _configuration["EmailSettings:EmailAddress"]));
         emailMessage.To.Add(new MailboxAddress("", email));
         emailMessage.Subject = subject;
         emailMessage.Body = new TextPart(TextFormat.Html)
@@ -40,8 +42,10 @@ public class EmailService : IEmailService
 
         using (var client = new SmtpClient())
         {
-            await client.ConnectAsync(_configuration["EmailSettings:SmtpServer"], _configuration.GetValue<int>("EmailSettings:SmtpPort"), true);
-            await client.AuthenticateAsync(_configuration["EmailSettings:EmailAddress"], _configuration["EmailSettings:EmailPassword"]);
+            await client.ConnectAsync(_configuration["EmailSettings:SmtpServer"],
+                _configuration.GetValue<int>("EmailSettings:SmtpPort"), true);
+            await client.AuthenticateAsync(_configuration["EmailSettings:EmailAddress"],
+                _configuration["EmailSettings:EmailPassword"]);
             await client.SendAsync(emailMessage);
 
             await client.DisconnectAsync(true);
@@ -69,9 +73,9 @@ public class EmailService : IEmailService
             if (confirmationEntity.ExpirationTime <= DateTime.UtcNow)
             {
                 await _emailConfirmationContext.RemoveConfirmationEntityAsync(email);
-                throw new TimeoutException("Email verification code expired");
+                throw new VerificationException("Email verification code expired");
             }
-            
+
             confirmationEntity.IsVerified = true;
             confirmationEntity.ExpirationTime =
                 DateTime.UtcNow.AddMinutes(
@@ -88,8 +92,9 @@ public class EmailService : IEmailService
         if (confirmationEntity.ExpirationTime < DateTime.UtcNow)
         {
             await _emailConfirmationContext.RemoveConfirmationEntityAsync(email);
-            throw new TimeoutException("Email verification has expired");
+            throw new VerificationException("Email verification has expired");
         }
+
         return confirmationEntity.IsVerified;
     }
 

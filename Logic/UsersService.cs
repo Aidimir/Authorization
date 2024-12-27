@@ -14,6 +14,7 @@ public interface IUsersService
     public Task<User?> FindUserAsync(string? id = null, string? email = null, string? username = null);
 
     public Task<(bool success, UserEntity? userEntity)> CheckUsersPasswordAsync(string login, string password);
+    public Task<UserEntity> FindEntityByLoginAsync(string login);
 }
 
 public class UsersService : IUsersService
@@ -33,11 +34,11 @@ public class UsersService : IUsersService
         {
             Roles = await _roleManager.GetUserRolesByIdsAsync(user.RoleIds.Select(id => id.ToString()))
         };
-        
+
         var result = await _userManager.CreateAsync(newUser);
         if (!result.Succeeded)
             throw new Exception(string.Join(",", result.Errors.Select(err => err.Description)));
-        
+
         await _userManager.AddPasswordAsync(newUser, user.Password);
         return newUser.ToDomainEntity();
     }
@@ -71,13 +72,13 @@ public class UsersService : IUsersService
     public async Task<(bool success, UserEntity? userEntity)> CheckUsersPasswordAsync(string login,
         string? password)
     {
-        var entity = await FindByLoginAsync(login);
+        var entity = await FindEntityByLoginAsync(login);
 
         var isSamePassword = await _userManager.CheckPasswordAsync(entity, password);
         return (isSamePassword, isSamePassword ? entity : null);
     }
 
-    private async Task<UserEntity> FindByLoginAsync(string login)
+    public async Task<UserEntity> FindEntityByLoginAsync(string login)
     {
         UserEntity? userEntiy;
 
