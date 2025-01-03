@@ -9,14 +9,14 @@ public class TokenContext : DbContext
     {
     }
 
-    private DbSet<TokenEntity> _tokens { get; set; }
+    private DbSet<TokenEntity?> _tokens { get; set; }
 
-    public async Task<TokenEntity> FindTokenAsync(Guid tokenId)
+    public async Task<TokenEntity?> FindTokenAsync(Guid tokenId)
     {
         return await _tokens.FindAsync(tokenId);
     }
 
-    public async Task AddTokenAsync(TokenEntity token)
+    public async Task AddTokenAsync(TokenEntity? token)
     {
         await _tokens.AddAsync(token);
         await SaveChangesAsync();

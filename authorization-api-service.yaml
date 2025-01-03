@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: authorization-api
+  name: authorization-api
+spec:
+  ports:
+    - name: "8005"
+      port: 8005
+      targetPort: 5000
+  type: LoadBalancer
+  selector:
+    io.kompose.service: authorization-api

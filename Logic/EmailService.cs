@@ -85,11 +85,17 @@ public class EmailService : IEmailService
     public async Task<bool> IsEmailVerifiedAsync(string email)
     {
         var confirmationEntity = await _emailConfirmationContext.FindConfirmationEntityAsync(email);
+        if (confirmationEntity is null)
+        {
+            return false;
+        }
+        
         if (confirmationEntity.ExpirationTime < DateTime.UtcNow)
         {
             await _emailConfirmationContext.RemoveConfirmationEntityAsync(email);
             throw new TimeoutException("Email verification has expired");
         }
+        
         return confirmationEntity.IsVerified;
     }
 

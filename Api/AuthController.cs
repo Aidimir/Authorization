@@ -36,7 +36,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] UserRegisterRequest user)
     {
         var mappedUser = _mapper.Map<User>(user);
-        return Ok(await _orchestrationService.RegisterUser(mappedUser));
+        try
+        {
+            return Ok(await _orchestrationService.RegisterUser(mappedUser));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new {message = ex.Message});
+        }
     }
 
     [HttpPost("send-verification-code")]

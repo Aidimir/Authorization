@@ -24,14 +24,7 @@ public class GlobalExceptionHandlerMiddleware : IMiddleware
             var code = DetectStatusCode(e);
 
             context.Response.StatusCode = (int) code;
-            if ((int) code >= 500)
-            {
-                await context.Response.WriteAsJsonAsync("Something went wrong on server side");
-            }
-            else
-            {
-                await context.Response.WriteAsJsonAsync(e.Message);
-            }
+            await context.Response.WriteAsJsonAsync(e.Message);
         }
     }
 

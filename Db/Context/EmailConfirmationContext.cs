@@ -9,20 +9,20 @@ public class EmailConfirmationContext : DbContext
     {
     }
 
-    private DbSet<EmailConfirmationEntity> _emailConfirmations { get; set; }
+    private DbSet<EmailConfirmationEntity?> _emailConfirmations { get; set; }
 
-    public async Task<EmailConfirmationEntity> FindConfirmationEntityAsync(string email)
+    public async Task<EmailConfirmationEntity?> FindConfirmationEntityAsync(string email)
     {
         return await _emailConfirmations.FindAsync(email);
     }
 
-    public async Task UpdateConfirmationEntityAsync(EmailConfirmationEntity confirmationEntity)
+    public async Task UpdateConfirmationEntityAsync(EmailConfirmationEntity? confirmationEntity)
     {
         _emailConfirmations.Update(confirmationEntity);
         await SaveChangesAsync();
     }
 
-    public async Task AddConfirmationEntiytyAsync(EmailConfirmationEntity entity)
+    public async Task AddConfirmationEntiytyAsync(EmailConfirmationEntity? entity)
     {
         var foundConfirmationEntity = await FindConfirmationEntityAsync(entity.Email);
         if (foundConfirmationEntity is not null)

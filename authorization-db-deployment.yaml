@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authorization-db
+  labels:
+    io.kompose.service: authorization-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: authorization-db
+  template:
+    metadata:
+      labels:
+        io.kompose.service: authorization-db
+    spec:
+      containers:
+        - name: database-container
+          image: postgres
+          env:
+            - name: POSTGRES_DB
+              value: Authorization
+            - name: POSTGRES_USER
+              value: Authorization
+            - name: POSTGRES_PASSWORD
+              value: 1qaz2wsx
+            - name: PGPORT
+              value: "5454"
+          ports:
+            - containerPort: 5454
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - Authorization
+            periodSeconds: 3
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - Authorization
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: db
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: db

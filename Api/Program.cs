@@ -1,9 +1,8 @@
-using System.Text;
+using System.ComponentModel;
 using Api;
 using Api.DepencyRegistration;
 using Api.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +19,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddSwaggerGen(setup =>
 {
-    // Include 'SecurityScheme' to use JWT Authentication
+    setup.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "dd-MM-yyyy" });
+    // Include 'SecurityScheme' to use JWT Authentication1
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
         BearerFormat = "JWT",
@@ -48,10 +48,10 @@ builder.Services.AddSwaggerGen(setup =>
 
 builder.Services.AddLogicServices();
 builder.Services.AddRepositories(builder.Configuration.GetConnectionString("DefaultConnection"));
-builder.Services.AddControllers().AddNewtonsoftJson(options =>
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
 {
-    // не работает преобразование формата даты, исправить
-    options.SerializerSettings.DateFormatString = "dd-MM-yyyy";
+    options.SerializerSettings.Converters.Add(new Api.DateOnlyConverter () );
     options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
     options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
     options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
