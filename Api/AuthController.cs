@@ -3,10 +3,7 @@ using Api.DTO.Responses;
 using AutoMapper;
 using Domain.Models;
 using Logic;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Api;
 
@@ -30,7 +27,7 @@ public class AuthController : ControllerBase
         var mappedAuthResponse = _mapper.Map<UserAuthResponse>(await _orchestrationService.Auth(mappedCredentials));
         return Ok(mappedAuthResponse);
     }
-    
+
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Register([FromBody] UserRegisterRequest user)
@@ -62,7 +59,19 @@ public class AuthController : ControllerBase
     {
         if (await _orchestrationService.VerifyEmail(request.Email, request.Code))
             return Ok();
-        
+
         return BadRequest();
+    }
+
+    [HttpPost("validate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ValidateToken([FromBody] string token)
+    {
+        var result = await _orchestrationService.ValidateToken(token);
+        if (result)
+            return Ok();
+
+        return BadRequest("Invalid token");
     }
 }

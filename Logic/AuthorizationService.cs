@@ -1,7 +1,6 @@
 using System.Security.Authentication;
 using Db.Models;
 using Domain.Models;
-using Microsoft.VisualBasic;
 
 namespace Logic;
 
@@ -10,6 +9,7 @@ public interface IAuthorizationService
     public Task<UserAuth> RegisterUser(User user);
     public Task<UserAuth> Auth(UserCredentials userCredentials);
     public Task<bool> CheckIsEmailNotTaken(string email);
+    public Task<bool> ValidateToken(string token);
 }
 
 public class AuthorizationService : IAuthorizationService
@@ -33,8 +33,21 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<UserAuth> Auth(UserCredentials userCredentials)
     {
-        if (userCredentials.RefreshToken is not null && await _tokenService.ValidateToken(userCredentials.RefreshToken))
+        if (userCredentials.RefreshToken is not null &&
+            (await _tokenService.ValidateToken(userCredentials.RefreshToken)).Success)
             throw new AuthenticationException("Invalid refresh token");
+
+        if (userCredentials.RefreshToken is not null)
+        {
+            var validationResult = await _tokenService.ValidateToken(userCredentials.RefreshToken);
+            if (validationResult.Success)
+            {
+                var userEntity = await _usersService.FindEntityByLoginAsync(userCredentials.Login);
+                return await CreateResponse(userEntity);
+            }
+
+            throw new AuthenticationException("Invalid refresh token");
+        }
 
         var checkUsersCredentials = await _usersService.CheckUsersPasswordAsync(userCredentials.Login,
             userCredentials.Password);
@@ -65,5 +78,14 @@ public class AuthorizationService : IAuthorizationService
     {
         var user = await _usersService.FindUserAsync(email: email);
         return user is null;
+    }
+
+    public async Task<bool> ValidateToken(string token)
+    {
+        var tokenValidationResult = await _tokenService.ValidateToken(token);
+        if (!tokenValidationResult.Success)
+            throw new AuthenticationException(tokenValidationResult.ErrorDescription);
+
+        return true;
     }
 }

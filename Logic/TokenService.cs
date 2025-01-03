@@ -3,6 +3,7 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
 using Db.Models;
+using Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using static System.Guid;
@@ -13,7 +14,7 @@ namespace Logic;
 public interface ITokenService
 {
     public Task<string> GenerateToken(UserEntity userEntity, bool isRefresh = false);
-    public Task<bool> ValidateToken(string token);
+    public Task<Result<bool>> ValidateToken(string token);
     public Task InvalidateAllUserAuthTokens(string userId);
     public Task InvalidateAllUserRefreshTokens(string userId);
 }
@@ -29,7 +30,7 @@ public class TokenService : ITokenService
         _tokenStore = tokenStore;
     }
 
-    public async Task<bool> ValidateToken(string token)
+    public async Task<Result<bool>> ValidateToken(string token)
     {
         var validator = new JwtSecurityTokenHandler();
         var validationParameters = new TokenValidationParameters
@@ -50,16 +51,16 @@ public class TokenService : ITokenService
         var isTokenValid = validator.CanReadToken(token) &&
                            (await validator.ValidateTokenAsync(token, validationParameters)).IsValid;
         if (!isTokenValid)
-            throw new AuthenticationException("Invalid token");
+            return new Result<bool> {Success = false, Value = false, ErrorDescription = "Invalid token"};
 
         var tokenEntity = await _tokenStore.FindTokenAsync(Parse(jti));
         if (tokenEntity is null)
-            throw new AuthenticationException("Token is invalidated");
+            return new Result<bool> {Success = false, Value = false, ErrorDescription = "Token is invalidated"};
 
-        if (tokenEntity.ExpirationDate < DateTime.Now)
-            throw new AuthenticationException("Token has expired");
+        if (tokenEntity.ExpirationDate < DateTime.UtcNow)
+            return new Result<bool> {Success = false, Value = false, ErrorDescription = "Token has expired"};
 
-        return true;
+        return new Result<bool> {Success = true, Value = true};
     }
 
     public async Task<string> GenerateToken(UserEntity userEntity, bool isRefresh = false)
@@ -72,7 +73,7 @@ public class TokenService : ITokenService
 
         if (!int.TryParse(configString, out var expiresAfter))
             throw new ArgumentException(nameof(expiresAfter));
-        var expiresAt = DateTime.UtcNow.AddSeconds(expiresAfter);
+        var expiresAt = DateTime.UtcNow.AddDays(expiresAfter);
 
         var generateClaims = GenerateClaims(userEntity);
 

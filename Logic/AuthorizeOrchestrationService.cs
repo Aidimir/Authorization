@@ -24,7 +24,7 @@ public class AuthorizeOrchestrationService
         var isVerified = await _emailService.VerifyEmailAsync(email, code);
         if (!isVerified)
             throw new ArgumentException("Invalid verification code");
-        
+
         return isVerified;
     }
 
@@ -36,13 +36,18 @@ public class AuthorizeOrchestrationService
 
     public async Task<UserAuth> RegisterUser(User user)
     {
-        var isEmailNotTaken = await _authorizationService.CheckIsEmailNotTaken(user.Email); 
+        var isEmailNotTaken = await _authorizationService.CheckIsEmailNotTaken(user.Email);
         if (!isEmailNotTaken)
             throw new ArgumentException("Email is already taken");
-        
+
         if (!await _emailService.IsEmailVerifiedAsync(user.Email))
             throw new AuthenticationException("Email is not verified");
 
         return await _authorizationService.RegisterUser(user);
+    }
+
+    public async Task<bool> ValidateToken(string token)
+    {
+        return await _authorizationService.ValidateToken(token);
     }
 }
