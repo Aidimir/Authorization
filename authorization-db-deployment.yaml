@@ -1,54 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: authorization-db
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-extended.yml
+    kompose.version: 1.35.0 (9532ceef3)
   labels:
     io.kompose.service: authorization-db
+  name: authorization-db
 spec:
   replicas: 1
   selector:
     matchLabels:
       io.kompose.service: authorization-db
+  strategy:
+    type: Recreate
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-extended.yml
+        kompose.version: 1.35.0 (9532ceef3)
       labels:
         io.kompose.service: authorization-db
     spec:
       containers:
-        - name: database-container
-          image: postgres
+        - args:
+            - -p
+            - "5432"
           env:
+            - name: DB_HOST
+              value: db
             - name: POSTGRES_DB
-              value: Authorization
-            - name: POSTGRES_USER
               value: Authorization
             - name: POSTGRES_PASSWORD
               value: 1qaz2wsx
-            - name: PGPORT
-              value: "5454"
+            - name: POSTGRES_USER
+              value: Authorization
+          image: postgres
+          livenessProbe: null
+          name: authorization-db
           ports:
-            - containerPort: 5454
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - Authorization
-            periodSeconds: 3
-            timeoutSeconds: 5
-            failureThreshold: 5
-          readinessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - Authorization
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            - containerPort: 5432
+              protocol: TCP
           volumeMounts:
-            - name: db
-              mountPath: /var/lib/postgresql/data
+            - mountPath: /var/lib/postgresql/data
+              name: auth-db
+      restartPolicy: Always
       volumes:
-        - name: db
+        - name: auth-db
           persistentVolumeClaim:
-            claimName: db
+            claimName: auth-db

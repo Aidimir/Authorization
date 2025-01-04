@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.cmd: kompose convert -f docker-compose-extended.yml
     kompose.version: 1.35.0 (9532ceef3)
   labels:
     io.kompose.service: authorization-api
@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose convert -f docker-compose.yml
+        kompose.cmd: kompose convert -f docker-compose-extended.yml
         kompose.version: 1.35.0 (9532ceef3)
       labels:
         io.kompose.service: authorization-api
@@ -23,7 +23,7 @@ spec:
       containers:
         - env:
             - name: ConnectionStrings__DefaultConnection
-              value: Host=authorization-db; Port=5454; Database=Authorization; Username=Authorization; Password=1qaz2wsx
+              value: Host=authorization-db; Port=5432; Database=Authorization; Username=Authorization; Password=1qaz2wsx
             - name: EmailSettings__EmailAddress
               value: aidimir1@mail.ru
             - name: EmailSettings__EmailPassword
@@ -31,7 +31,7 @@ spec:
             - name: JwtSettings__Key
               value: 9kNih2ddBJI4W9ouHICafJ/d/SgYaq0OmK/5OeN0Nqs=
           image: authorization-api
-          imagePullPolicy: Never
+          imagePullPolicy: Never    
           name: authorization-api
           ports:
             - containerPort: 5000
