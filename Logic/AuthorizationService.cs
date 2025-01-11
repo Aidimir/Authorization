@@ -33,10 +33,6 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<UserAuth> Auth(UserCredentials userCredentials)
     {
-        if (userCredentials.RefreshToken is not null &&
-            (await _tokenService.ValidateToken(userCredentials.RefreshToken)).Success)
-            throw new AuthenticationException("Invalid refresh token");
-
         if (userCredentials.RefreshToken is not null)
         {
             var validationResult = await _tokenService.ValidateToken(userCredentials.RefreshToken);
