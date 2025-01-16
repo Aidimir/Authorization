@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using Api;
 using Api.DepencyRegistration;
 using Api.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,7 +56,15 @@ builder.Services.AddControllers()
 });
 
 builder.Services.AddAuthenticationProvider(builder.Configuration);
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -68,6 +74,7 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
 // }
+app.UseCors("AllowAll");
 app.UseMiddleware<JwtValidationMiddleware>();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseHttpsRedirection();
