@@ -3,8 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     io.kompose.service: authorization-db
-  name: auth-db
+  name: authorization-db
 spec:
+  storageClassName: microk8s-hostpath
   accessModes:
     - ReadWriteOnce
   resources:
@@ -14,5 +15,5 @@ spec:
     requests:
       memory: "256Mi"
       cpu: "250m"
-      storage: "1Gi"
+      storage: "512Mi"
 

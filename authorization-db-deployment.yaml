@@ -43,9 +43,9 @@ spec:
               protocol: TCP
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: auth-db
+              name: authorization-db
       restartPolicy: Always
       volumes:
-        - name: auth-db
+        - name: authorization-db
           persistentVolumeClaim:
-            claimName: auth-db
+            claimName: authorization-db

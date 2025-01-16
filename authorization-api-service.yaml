@@ -12,6 +12,7 @@ spec:
     - name: "8005"
       port: 8005
       targetPort: 5000
-  type: LoadBalancer
+      nodePort: 30005
+  type: NodePort
   selector:
     io.kompose.service: authorization-api
