@@ -3,6 +3,15 @@ using Domain.Models;
 
 namespace Logic;
 
+public class TelegramAuthRequest
+{
+    public string TelegramId { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Username { get; set; }
+    public string PhotoUrl { get; set; }
+}
+
 public class AuthorizeOrchestrationService
 {
     private readonly IAuthorizationService _authorizationService;
@@ -12,6 +21,28 @@ public class AuthorizeOrchestrationService
     {
         _authorizationService = authorizationService;
         _emailService = emailService;
+    }
+    
+    public async Task<UserAuth> TelegramAuth(TelegramAuthRequest request)
+    {
+        var isTelegramIdNotTaken = await _authorizationService.CheckIsTelegramIdNotTaken(request.TelegramId);
+        
+        if (isTelegramIdNotTaken)
+        {
+            var telegramUser = new TelegramUser
+            {
+                TelegramId = request.TelegramId,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Username = request.Username,
+                PhotoUrl = request.PhotoUrl
+            };
+            return await _authorizationService.RegisterTelegramUser(telegramUser);
+        }
+        else
+        {
+            return await _authorizationService.AuthTelegramUser(request.TelegramId);
+        }
     }
 
     public async Task<UserAuth> Auth(UserCredentials userCredentials)

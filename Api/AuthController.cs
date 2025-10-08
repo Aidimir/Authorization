@@ -4,6 +4,7 @@ using AutoMapper;
 using Domain.Models;
 using Logic;
 using Microsoft.AspNetCore.Mvc;
+using TelegramAuthRequest = Logic.TelegramAuthRequest;
 
 namespace Api;
 
@@ -17,6 +18,22 @@ public class AuthController : ControllerBase
     {
         _mapper = mapper;
         _orchestrationService = orchestrationService;
+    }
+    
+    [HttpPost("telegram-auth")]
+    [ProducesResponseType<UserAuthResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> TelegramAuth([FromBody] TelegramAuthRequest request)
+    {
+        try
+        {
+            var authResponse = await _orchestrationService.TelegramAuth(request);
+            var mappedResponse = _mapper.Map<UserAuthResponse>(authResponse);
+            return Ok(mappedResponse);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet("sign-in")]

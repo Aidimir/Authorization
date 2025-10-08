@@ -19,6 +19,12 @@ public class UserEntity : IdentityUser
 
     public DateOnly? BirthDate { get; set; }
     public required IEnumerable<IdentityRole> Roles { get; set; }
+    
+    public string TelegramId { get; set; }
+    public string TelegramFirstName { get; set; }
+    public string TelegramLastName { get; set; }
+    public string TelegramUsername { get; set; }
+    public string TelegramPhotoUrl { get; set; }
 
     public void UpdatePersonalData(PersonalData personalData)
     {
